@@ -29,15 +29,26 @@ class Main extends CI_Controller {
         $config['max_size']             = 2147483647;
         $this->load->library('upload', $config);
         if ($this->upload->do_upload('file')) {
-        	$this->db->insert($table_name, array(
-				'ID_Lagu' => $id,
-				'Judul' => $judul,
-				'Artist' => $artist,
-				'Gambar' => $this->upload->data()['file_name'],
-				'Album' => $album,
-				'Lirik_Lagu' => $lirik_lagu,
-				'Link' => $link
-			));
+        	if ($id == -1) {
+	        	$this->db->insert($table_name, array(
+					'Judul' => $judul,
+					'Artist' => $artist,
+					'Gambar' => $this->upload->data()['file_name'],
+					'Album' => $album,
+					'Lirik_Lagu' => $lirik_lagu,
+					'Link' => $link
+				));
+			} else {
+				$this->db->insert($table_name, array(
+					'ID_Lagu' => $id,
+					'Judul' => $judul,
+					'Artist' => $artist,
+					'Gambar' => $this->upload->data()['file_name'],
+					'Album' => $album,
+					'Lirik_Lagu' => $lirik_lagu,
+					'Link' => $link
+				));
+			}
         } else {
         	echo json_encode($this->upload->display_errors());
         }
@@ -60,8 +71,8 @@ class Main extends CI_Controller {
         	$this->db->update($table_name, array(
 				'Judul' => $judul,
 				'Artist' => $artist,
-				'Gambar' => $this->upload->data()['file_name'],
 				'Album' => $album,
+				'Gambar' => $this->upload->data()['file_name'],
 				'Lirik_Lagu' => $lirik_lagu,
 				'Link' => $link
 			));
@@ -74,5 +85,20 @@ class Main extends CI_Controller {
 		$table_name = $this->input->post('table_name');
 		$id = intval($this->input->post('id'));
 		$this->db->query("DELETE FROM `" . $table_name . "` WHERE `ID_Lagu`=" . $id);
+	}
+	
+	public function login() {
+		$email = $this->input->post('email');
+		$password = $this->input->post('password');
+		$admins = $this->db->query("SELECT * FROM `admins` WHERE `email`='" . $email . "' AND `password`='" . $password . "'")->result_array();
+		if (sizeof($admins) > 0) {
+			$admin = $admins[0];
+			$admin['response_code'] = 1;
+			echo json_encode($admin);
+		} else {
+			echo json_encode(array(
+				'response_code' => -1
+			));
+		}
 	}
 }
